@@ -40,7 +40,7 @@ export function UserMenu() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent sideOffset={8} align="start" className="w-[180px] bg-background">
-          <DropdownMenuItem
+{/*           <DropdownMenuItem
             onClick={() =>
               location.href='#dialog="settings"'
             }
@@ -48,7 +48,7 @@ export function UserMenu() {
           >
             用户信息
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator /> */}
           <DropdownMenuItem
             onClick={() =>
               location.href='#dialog="advanced-settings"'
@@ -78,18 +78,18 @@ export function UserMenu() {
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <a
-              href="https://github.com/weaigc/bingo/"
+              href="http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=-aRNctK2kQ5CYhog56MZnimTkNFYGZvy&authKey=w7oPmOYebQ1%2BH8LI7Yf9N7f5nVd49XUT4gK3wUS5GgQ0tQVAiV52IztX%2BDAYno0G&noverify=0&group_code=163505765"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-between w-full gap-2 cursor-pointer"
             >
-              开源地址
+              反馈建议
               <IconGitHub />
               <IconExternalLink className="w-3 h-3 ml-auto" />
             </a>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
+{/*           <DropdownMenuItem asChild>
             <a
               href="https://huggingface.co/login?next=%2Fspaces%2Fhf4all%2Fbingo%3Fduplicate%3Dtrue%26visibility%3Dpublic"
               target="_blank"
@@ -100,7 +100,7 @@ export function UserMenu() {
               <IconExternalLink className="w-3 h-3 ml-auto" />
             </a>
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator /> */}
           <DropdownMenuItem className="flex-col items-start">
             <div className="font-medium">版本信息 {pkg.version}</div>
           </DropdownMenuItem>
