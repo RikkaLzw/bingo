@@ -19,10 +19,10 @@ import { createChunkDecoder } from '@/lib/utils'
 import { randomUUID } from 'crypto'
 import md5 from 'md5'
 
-type Params = SendMessageParams<{ bingConversationStyle: BingConversationStyle, retryCount?: number }>
+type Params = SendMessageParams<{ bingConversationStyle: BingConversationStyle, allowSearch?: boolean, retryCount?: number }>
 
-const getOptionSets = (conversationStyle: BingConversationStyle) => {
-  return {
+const getOptionSets = (conversationStyle: BingConversationStyle, allowSeach = true) => {
+  const results = {
     [BingConversationStyle.Creative]: [
       'nlu_direct_response_filter',
       'deepleo',
@@ -30,29 +30,16 @@ const getOptionSets = (conversationStyle: BingConversationStyle) => {
       'responsible_ai_policy_235',
       'enablemm',
       'dv3sugg',
-      'machine_affinity',
       'autosave',
       'iyxapbing',
       'iycapbing',
       'h3imaginative',
-      'uquopt',
-      'gcccomp',
-      'utildv3tosah',
-      'cpcandi',
-      'cpcatral3',
-      'cpcatro50',
-      'cpcfmql',
-      'cpcgnddi',
-      'cpcmattr2',
-      'cpcmcit1',
-      'e2ecacheread',
-      'nocitpass',
-      'iypapyrus',
-      'hlthcndans',
-      'dv3suggtrim',
+      'gptvprvc',
+      'fluxpcalc',
       'eredirecturl',
       'clgalileo',
-      'gencontentv3'
+      'gencontentv3',
+      'fluxv14l'
     ],
     [BingConversationStyle.Balanced]: [
       'nlu_direct_response_filter',
@@ -61,28 +48,14 @@ const getOptionSets = (conversationStyle: BingConversationStyle) => {
       'responsible_ai_policy_235',
       'enablemm',
       'dv3sugg',
-      'machine_affinity',
       'autosave',
       'iyxapbing',
       'iycapbing',
       'galileo',
-      'saharagenconv5',
-      'uquopt',
-      'gcccomp',
-      'utildv3tosah',
-      'cpcandi',
-      'cpcatral3',
-      'cpcatro50',
-      'cpcfmql',
-      'cpcgnddi',
-      'cpcmattr2',
-      'cpcmcit1',
-      'e2ecacheread',
-      'nocitpass',
-      'iypapyrus',
-      'hlthcndans',
-      'dv3suggtrim',
-      'eredirecturl'
+      'gptvprvc',
+      'fluxpcalc',
+      'eredirecturl',
+      'saharagenconv5'
     ],
     [BingConversationStyle.Precise]: [
       'nlu_direct_response_filter',
@@ -91,44 +64,40 @@ const getOptionSets = (conversationStyle: BingConversationStyle) => {
       'responsible_ai_policy_235',
       'enablemm',
       'dv3sugg',
-      'machine_affinity',
       'autosave',
       'iyxapbing',
       'iycapbing',
       'h3precise',
+      'gptvprvc',
+      'fluxpcalc',
+      'eredirecturl',
       'clgalileo',
       'gencontentv3',
-      'uquopt',
-      'gcccomp',
-      'utildv3tosah',
-      'cpcandi',
-      'cpcatral3',
-      'cpcatro50',
-      'cpcfmql',
-      'cpcgnddi',
-      'cpcmattr2',
-      'cpcmcit1',
-      'e2ecacheread',
-      'nocitpass',
-      'iypapyrus',
-      'hlthcndans',
-      'dv3suggtrim',
-      'eredirecturl'
+      'fluxv14l'
     ],
     [BingConversationStyle.Base]: [
-      'saharasugg',
-      'enablenewsfc',
-      'gencontentv3',
       'deepleo',
       'disable_emoji_spoken_text',
+      'responsible_ai_policy_235',
       'enablemm',
-      'h3precisedtappid',
-      'cricinfo',
-      'cricinfov2',
       'dv3sugg',
+      'autosave',
+      'iyxapbing',
+      'iycapbing',
+      'h3imaginative',
+      'gptvprvc',
+      'fluxpcalc',
+      'eredirecturl',
+      'clgalileo',
+      'gencontentv3',
+      'fluxv14l',
       'nojbfedge',
     ]
   }[conversationStyle]
+  if (allowSeach === false) {
+    results.push('nosearchall')
+  }
+  return results
 }
 
 export class BingWebBot {
@@ -183,7 +152,7 @@ export class BingWebBot {
     }
 
     const argument = {
-      optionsSets: getOptionSets(useBaseSets ? BingConversationStyle.Base : conversation.conversationStyle),
+      optionsSets: getOptionSets(useBaseSets ? BingConversationStyle.Base : conversation.conversationStyle, conversation.allowSearch),
       sliceIds: [
         'gbaa',
         'gba',
@@ -212,16 +181,26 @@ export class BingWebBot {
       allowedMessageTypes: [
         'ActionRequest',
         'Chat',
+        'ConfirmationCard',
         'Context',
         'InternalSearchQuery',
         'InternalSearchResult',
         'Disengaged',
         'InternalLoaderMessage',
+        'InvokeAction',
         'Progress',
         'RenderCardRequest',
+        'RenderContentRequest',
+        // 'AdsQuery',
         'SemanticSerp',
         'GenerateContentQuery',
-        'SearchQuery',
+        'SearchQuery'
+      ],
+      conversationHistoryOptionsSets: [
+        'autosave',
+        'savemem',
+        'uprofupd',
+        'uprofgen'
       ],
       previousMessages: conversation.context?.length ? [{
         author: 'user',
@@ -314,7 +293,7 @@ export class BingWebBot {
   async sendMessage(params: Params) {
     try {
       await this.createContext(params.options.bingConversationStyle)
-      Object.assign(this.conversationContext!, { prompt: params.prompt, imageUrl: params.imageUrl, context: params.context })
+      Object.assign(this.conversationContext!, { allowSearch: params.options.allowSearch, prompt: params.prompt, imageUrl: params.imageUrl, context: params.context })
       return this.sydneyProxy(params)
     } catch (error) {
       const formatError = error instanceof ChatError ? error : new ChatError('Catch Error', ErrorCode.UNKOWN_ERROR)
@@ -326,7 +305,7 @@ export class BingWebBot {
     }
   }
 
-  private async sydneyProxy(params: Params) {
+  private async sydneyProxy(params: Params, reconnect: boolean = false) {
     this.lastText = ''
     const abortController = new AbortController()
     const response = await fetch(this.endpoint + '/api/sydney', {
@@ -338,22 +317,8 @@ export class BingWebBot {
       signal: abortController.signal,
       body: JSON.stringify(this.conversationContext!)
     }).catch(e => {
-      if (String(e) === 'timeout') {
-        if (params.options.retryCount??0 > 5) {
-          conversation.invocationId--
-          params.onEvent({
-            type: 'ERROR',
-            error: new ChatError(
-              'Timeout',
-              ErrorCode.BING_TRY_LATER,
-            ),
-          })
-        } else {
-          params.options.retryCount = (params.options.retryCount ?? 0) + 1
-          this.sydneyProxy(params)
-        }
-      }
       console.log('Fetch Error: ', e)
+      if (reconnect) return
       params.onEvent({
         type: 'ERROR',
         error: new ChatError(
@@ -364,10 +329,12 @@ export class BingWebBot {
       return e
     })
     const conversation = this.conversationContext!
+    const originalInvocationId = conversation.invocationId
     conversation.invocationId++
+    if (reconnect) return
 
     if (response.status !== 200) {
-      conversation.invocationId--
+      conversation.invocationId = originalInvocationId
       params.onEvent({
         type: 'ERROR',
         error: new ChatError(
@@ -389,12 +356,28 @@ export class BingWebBot {
     })
 
     const textDecoder = createChunkDecoder()
-    for await (const chunk of streamAsyncIterable(response.body!)) {
-      const t = setTimeout(() => abortController.abort('timeout'), 6000)
-      this.parseEvents(params, websocketUtils.unpackMessage(textDecoder(chunk)))
-      clearTimeout(t)
+    const timeout = () => {
+      if (params.options.retryCount??0 > 5) {
+        params.onEvent({
+          type: 'ERROR',
+          error: new ChatError(
+            'Timeout',
+            ErrorCode.BING_TRY_LATER,
+          ),
+        })
+      } else {
+        conversation.invocationId = originalInvocationId
+        params.options.retryCount = (params.options.retryCount ?? 0) + 1
+        this.sydneyProxy(params, true)
+      }
     }
-    console.log('done')
+    let t = conversation.invocationId ? undefined : setTimeout(timeout, 6000)
+    for await (const chunk of streamAsyncIterable(response.body!)) {
+      clearTimeout(t)
+      t = setTimeout(timeout, 6000)
+      this.parseEvents(params, websocketUtils.unpackMessage(textDecoder(chunk)))
+    }
+    clearTimeout(t)
   }
 
   async sendWs() {
